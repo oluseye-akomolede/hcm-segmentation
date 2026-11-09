@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imagenet-1k-download
+  namespace: default
+  labels:
+    project: imagenet-download
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dataset-download
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 300
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: dataset-download
+        project: imagenet-download
+    spec:
+      containers:
+        - image: docker.io/oakomol/base-image-hf-minio:latest
+          imagePullPolicy: Always
+          name: imagenet-1k-download
+          envFrom:
+            - secretRef:
+                name: imagenet-download-creds
+          volumeMounts:
+            - name: imagenet-downloader-mount
+              mountPath: /data
+          ports:
+            - containerPort: 9090
+      volumes:
+        - name: imagenet-downloader-mount
+          persistentVolumeClaim:
+            claimName: imagenet-downloader-pvc

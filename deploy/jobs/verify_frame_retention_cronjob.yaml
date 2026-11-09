@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: verify-frame-retention
+  namespace: default
+  labels: {app: verify-frame-retention, rig: ecs_hcm}
+spec:
+  # Daily. The rule expires objects on a daily scan and the tolerance is a day of
+  # slack (31 days against a 30-day rule), so a missed run is not a false alarm.
+  schedule: "17 7 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      # A week of history: long enough to see a pattern, short enough not to litter.
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels: {app: verify-frame-retention, rig: ecs_hcm}
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: verify
+            # The tag has to resolve in Harbor. deploy/jobs/launch_verify_frame_retention.sh
+            # injects the real one (--image-tag), so the manifest is not the record.
+            image: registry.example.com/torchx_deploy/ecs_hcm_trainer:a0cceab
+            # The script is a ConfigMap, not baked into the image: it has to change
+            # with the check, not with the next training image.
+            command: ["/bin/bash", "-c"]
+            args: ["exec python /opt/verify/verify_frame_retention.py"]
+            env:
+            # A cpu limit does not change os.cpu_count(), so the thread counts are
+            # set to the limit rather than left to the host's 56 cores.
+            - {name: OMP_NUM_THREADS, value: "1"}
+            - {name: MKL_NUM_THREADS, value: "1"}
+            - {name: OPENBLAS_NUM_THREADS, value: "1"}
+            - {name: PYTHONDONTWRITEBYTECODE, value: "1"}
+            - {name: MINIO_ENDPOINT, value: "minio.minio.svc.cluster.local:9000"}
+            - {name: MINIO_SECURE, value: "false"}
+            # Spelled out rather than left to the SDK, which asks the bucket for its
+            # location and is refused by a scoped policy (D6).
+            - {name: MINIO_REGION, value: "us-east-1"}
+            # Its own identity: the hcm project's key is refused this read (measured
+            # 2026-10-28 against the live bucket: exit 3, "refused the lifecycle read"),
+            # and the camera's key is upload-only by design. The policy it needs is in
+            # the repo at deploy/minio/hcm-frame-retention-policy.json -- ListBucket, the
+            # lifecycle read and the location of this one bucket, nothing else.
+            - name: MINIO_USER
+              valueFrom: {secretKeyRef: {name: hcm-frame-retention-creds, key: MINIO_USER}}
+            - name: MINIO_PASSWORD
+              valueFrom: {secretKeyRef: {name: hcm-frame-retention-creds, key: MINIO_PASSWORD}}
+            resources:
+              requests: {cpu: 100m, memory: 128Mi}
+              limits: {cpu: 500m, memory: 512Mi}
+            volumeMounts:
+            - {name: src, mountPath: /opt/verify, readOnly: true}
+          volumes:
+          - name: src
+            # No items: mapping, on purpose: the ConfigMap's key has to be the file
+            # name `args` runs, and install-time checks that pair from both sides --
+            # the object kubectl would create, and this command. An items: mapping
+            # would let the two names drift apart without either check noticing.
+            configMap: {name: verify-frame-retention-src}

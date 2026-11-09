@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: camera-frames-round0-measure
+  namespace: default
+  labels: {app: camera-frames-round0-measure, rig: ecs_hcm}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 7200
+  ttlSecondsAfterFinished: 28800
+  template:
+    metadata:
+      labels: {app: camera-frames-round0-measure, rig: ecs_hcm}
+    spec:
+      restartPolicy: Never
+      nodeSelector: {kubernetes.io/hostname: gpu-node-a}
+      containers:
+      - name: measure
+        # The tag has to resolve in Harbor: `latest` is not pushed, so it would
+        # ImagePullBackOff. a0cceab is present today; the tag cut after this change
+        # merges is the one to use then. deploy/jobs/launch_camera_frames_measure.sh
+        # overrides this line (--image-tag) so the manifest is not the record.
+        image: registry.example.com/torchx_deploy/ecs_hcm_trainer:a0cceab
+        # The source ConfigMap is a tarball of the repo (tools/src_closure.py
+        # decides what goes in); untar it and run the repo's own launcher script.
+        command: ["/bin/bash", "-c"]
+        args:
+        - >-
+          set -e; mkdir -p /work/src && tar xzf /src-cm/src.tgz -C /work/src &&
+          exec /bin/bash /work/src/run.sh
+        env:
+        - {name: GIT_SHA_UNDER_TEST, value: "unknown"}
+        # D8: one GPU, cpu 2 -- and the thread counts match the cpu limit, since
+        # os.cpu_count() still reports the host's cores.
+        - {name: OMP_NUM_THREADS, value: "2"}
+        - {name: MKL_NUM_THREADS, value: "2"}
+        - {name: OPENBLAS_NUM_THREADS, value: "2"}
+        - {name: PYTHONDONTWRITEBYTECODE, value: "1"}
+        - {name: MINIO_ENDPOINT, value: "minio.minio.svc.cluster.local:9000"}
+        - {name: MINIO_SECURE, value: "false"}
+        # Spelled out rather than left to the SDK: an upload-only grant refuses the
+        # GetBucketLocation that minio-py issues when it has no region.
+        - {name: MINIO_REGION, value: "us-east-1"}
+        - {name: MLFLOW_TRACKING_URI, value: "http://10.0.1.102:9090"}
+        - name: MINIO_USER
+          valueFrom: {secretKeyRef: {name: ecs-hcm-minio-creds, key: MINIO_ACCESS_KEY}}
+        - name: MINIO_PASSWORD
+          valueFrom: {secretKeyRef: {name: ecs-hcm-minio-creds, key: MINIO_SECRET_KEY}}
+        # The two pins, recorded from the known artefacts before anything is
+        # scored (tasks 5.1). Kept in a ConfigMap so the run that produced a
+        # number can be reproduced; the tool exits 2 if either is unset.
+        - name: CAMERA_ROUND0_SHA_LIVE
+          valueFrom: {configMapKeyRef: {name: camera-round0-pins, key: live_sha256}}
+        - name: CAMERA_ROUND0_SHA_STRONG
+          valueFrom: {configMapKeyRef: {name: camera-round0-pins, key: strong_sha256}}
+        - name: CAMERA_ROUND0_LAST_NIGHT
+          valueFrom: {configMapKeyRef: {name: camera-round0-pins, key: last_night}}
+        resources:
+          requests: {cpu: "1", memory: 4Gi, nvidia.com/gpu: "1"}
+          limits: {cpu: "2", memory: 8Gi, nvidia.com/gpu: "1"}
+        volumeMounts:
+        - {name: src, mountPath: /src-cm, readOnly: true}
+        - {name: work, mountPath: /work}
+      volumes:
+      - name: src
+        configMap: {name: camera-frames-round0-measure-src}
+      - name: work
+        emptyDir: {sizeLimit: 30Gi}

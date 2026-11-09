@@ -1,0 +1,5 @@
+[kubernetes]
+queue = default
+image_repo =  registry.example.com/torchx_deploy/torchx_image
+
+

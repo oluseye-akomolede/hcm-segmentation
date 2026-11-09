@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mlflow-pvc-v2
+  labels:
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    platform/replaces: mlflow-pvc (100Gi), owner decision 2026-09-27 21:20Z
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: longhorn

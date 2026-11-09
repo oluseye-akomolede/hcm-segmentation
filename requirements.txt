@@ -1,0 +1,43 @@
+# Mirrors the pip list in dockerfiles/ecs_hcm_trainer/Dockerfile (runtime
+# stage). Kept in step with the image: what is unimported and unrequired is
+# dropped there and here alike. torchaudio is gone (imported nowhere);
+# torch/torchvision are installed in the image from the cu121 wheel index, so
+# their pins here are the same release, not a second install path.
+#
+# Not dropped even though no shipped module imports them, because a kept
+# package hard-requires them: matplotlib and scikit-learn (mlflow), pandas
+# (mlflow and datasets).
+
+# PyTorch and deep learning frameworks
+torch==2.1.0
+torchvision==0.16.0
+pytorch-lightning==2.1.0
+transformers==4.35.0
+
+# Data processing and datasets
+datasets==2.14.0
+huggingface-hub==0.17.0
+numpy==1.24.3
+pandas==2.0.3
+pillow==10.0.0
+opencv-python-headless==4.8.0.76
+scikit-learn==1.3.0
+pyarrow==13.0.0
+pycocotools==2.0.7
+
+# Visualization and progress tracking
+matplotlib==3.7.1
+tqdm==4.66.0
+colorama==0.4.6
+
+# MLflow and experiment tracking
+mlflow==2.8.0
+
+# Cloud storage and data access
+minio==7.1.17
+s3fs==2023.9.0
+fsspec==2023.9.0
+
+# Utilities
+pyyaml==6.0
+requests==2.31.0

@@ -1,0 +1,42 @@
+schema: spec-driven
+
+context: |
+  ecs_hcm_model: a custom PyTorch computer-vision model (ecs_hcm_model/core/hcm_nn.py)
+  trained on ImageNet-1k / COCO segmentation on a homelab Kubernetes cluster (Airflow DAG
+  owned by the sys_dags rig), tracked in MLflow, checkpoints in MinIO. jetson/realtime_demo.py
+  runs camera inference on a Jetson Orin Nano. The trainer image pins torch 2.1.0 (cu121).
+  Specs describe behaviour that matters to a training run or a consumer of its outputs
+  (lr schedule, resume selection, numerics, logged metrics, env overrides, image contract),
+  not every line. Requirements must be checkable against code or a test.
+  Constraints: never train on the dev VM; secrets only from the environment.
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

@@ -1,0 +1,127 @@
+# Python cache and compiled files
+#
+# Docker anchors every pattern at the context root: unlike .gitignore, a bare
+# name does not match at any depth, so each line that has to reach inside the
+# trees the image ships needs its **/ form as well (trainer-image requirement,
+# "The build context carries no bytecode or weights from the trees the image
+# ships"). The bare forms stay -- they are what a reader searches for.
+__pycache__/
+**/__pycache__/
+*.py[cod]
+**/*.py[cod]
+*$py.class
+*.so
+**/*.so
+.Python
+build/
+**/build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+**/lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git files
+.git/
+.gitignore
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Docker files (except the one we're building)
+# NOTE: this file is named Dockerfile.dockerignore so BuildKit picks it up for
+# the Dockerfile at this path (the build context is the repo root, so a plain
+# .dockerignore would be ignored). Keep this pattern from excluding that file.
+Dockerfile
+Dockerfile.*
+!Dockerfile.dockerignore
+
+# Documentation
+*.md
+docs/
+
+# Test files
+tests/
+*_test.py
+test_*.py
+
+# Jupyter notebooks - exclude all
+jupyter_notebooks/
+*.ipynb
+
+# MLflow artifacts and logs
+mlruns/
+lightning_logs/
+
+# Kubernetes manifests
+K8s_Logging/
+K8s_Training/
+
+# Large model files (these should be downloaded during runtime)
+*.pt
+**/*.pt
+*.pth
+**/*.pth
+*.onnx
+**/*.onnx
+*.torchscript
+**/*.torchscript
+
+# Test files and scripts
+Test Scripts/
+test_scripts/
+tests/
+
+# Docker files
+# The build context is the repo root, so this must NOT exclude the trainer
+# Dockerfile / build script that BuildKit needs to read.
+dockerfiles/
+!dockerfiles/ecs_hcm_trainer/
+
+# Temporary files
+*.tmp
+**/*.tmp
+*.temp
+**/*.temp
+.cache/
+**/.cache/
+
+# Build artifacts
+.torchxconfig

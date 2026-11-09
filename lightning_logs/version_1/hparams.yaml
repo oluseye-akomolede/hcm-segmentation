@@ -1,0 +1,17 @@
+accelerator: cpu
+arch: resnet18
+batch_size: 256
+data_path: null
+deterministic: true
+evaluate: false
+lr: 0.1
+max_epochs: 90
+momentum: 0.9
+pretrained: false
+profiler: simple
+seed: 42
+test_dir: /etc/datasets/img/imagenet/imagenet-1k/data/test
+train_dir: /etc/datasets/img/imagenet/imagenet-1k/data/train
+val_dir: /etc/datasets/img/imagenet/imagenet-1k/data/val
+weight_decay: 0.0001
+workers: 4

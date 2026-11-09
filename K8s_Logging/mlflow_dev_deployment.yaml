@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-dev-deployment
+  labels:
+    project: mlflow-server-deployment-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ml-mass-training
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 300
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: ml-mass-training
+        project: mlflow-server-deployment-dev
+    spec:
+      containers:
+        - image: docker.io/oakomol/mlflow_server_dev:latest
+          imagePullPolicy: Always
+          name: mlflow-server-dev
+          command:
+            - /bin/sh
+            - -c
+            - python -m mlflow server --host 0.0.0.0 --port 9090 --serve-artifacts --artifacts-destination /mlflow_artifacts --backend-store-uri "$MLFLOW_BACKEND_STORE_URI" --gunicorn-opts '--timeout 600'
+          env:
+            - name: MLFLOW_BACKEND_STORE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mlflow-dev-db
+                  key: MLFLOW_BACKEND_STORE_URI
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 3Gi
+          volumeMounts:
+            - name: mlflow-fs-mount
+              mountPath: /mlflow_artifacts
+          ports:
+            - containerPort: 9090
+      volumes:
+        - name: mlflow-fs-mount
+          persistentVolumeClaim:
+            claimName: mlflow-pvc-v2

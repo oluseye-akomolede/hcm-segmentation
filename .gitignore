@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+mlflow_backup.sql
+~logs.txt
+K8s_Logging/github_token
+dockerfiles/git_docker_image/harbor-ca.crt
+
+# per-seat Claude Code settings and their backups
+.claude/settings.local.json*
