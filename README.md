@@ -6,7 +6,9 @@ I designed this and directed an AI agent team that wrote it. The model architect
 
 ## What it does
 
-The model is a Hierarchical Clustering Model (HCM) for segmentation on a ConvNeXt V2 backbone. Training runs at 352-pixel input in two stages: COCO first, then a fine-tune on a mix of BDD100K street scenes and COCO (`--coco`, `--bdd`).
+The model is a Hierarchical Coherence Modeling (HCM) segmenter on a ConvNeXt V2 backbone. Training runs at 352-pixel input in two stages: COCO first, then a fine-tune on a mix of BDD100K street scenes and COCO (`--coco`, `--bdd`).
+
+This repo implements the HCM architecture from Xiao, Zhang, He, Hu, Liu, "Concealed Object Segmentation with Hierarchical Coherence Modeling", CICAI 2023, arXiv:2401.11767, https://arxiv.org/abs/2401.11767, with a ConvNeXt V2-Tiny backbone for object-vs-background segmentation.
 
 Three things run around it:
 

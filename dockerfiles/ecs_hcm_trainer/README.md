@@ -1,6 +1,6 @@
 # ECS HCM Trainer Docker Image
 
-This Docker image is designed for training Hierarchical Clustering Model (HCM) on ImageNet1K dataset, specifically built to be orchestrated by Apache Airflow with command-line arguments.
+This Docker image is designed for training the Hierarchical Coherence Modeling (HCM) segmenter on ImageNet1K dataset, specifically built to be orchestrated by Apache Airflow with command-line arguments.
 
 ## Features
 
